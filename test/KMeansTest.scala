@@ -19,14 +19,18 @@ class KMeansTest extends FunSuite {
     val pts = parsePoints(points)
     val seed = Some(5L)
 
-    assert(randomCentroids(3, pts, seed) === Seq(pt(2,8), pt(4,5), pt(-9,2)))
+    val expected = Seq(pt(2,8), pt(4,5), pt(-9,2))
+    assert(randomCentroids(3, pts, seed) === expected)
+    assert(randomCentroids(3, pts.par, seed) === expected)
   }
 
-  test("kmeans++ centroids") {
+  test("k-means++ centroids") {
     val pts = parsePoints(points)
     val seed = Some(3L)
 
-    assert(kppCentroids(3, pts, seed) === Seq(pt(-9,2), pt(8,2), pt(2,8)))
+    val expected = Seq(pt(-9,2), pt(8,2), pt(2,8))
+    assert(kppCentroids(3, pts, seed) === expected)
+    assert(kppCentroids(3, pts.par, seed) === expected)
   }
 
 
