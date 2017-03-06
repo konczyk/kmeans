@@ -82,4 +82,32 @@ class KMeansTest extends FunSuite {
     assert(kmeans.classify(pts.par, centroids.par) === classification)
   }
 
+  test("revise with non missing assignment") {
+    val centroids = IndexedSeq(pt(1,4), pt(-3,7), pt(3,-2))
+    val classified= Map(
+      centroids(0) -> Seq(pt(4,5), pt(2,3), pt(9,6), pt(8,6), pt(4,3), pt(2,8)),
+      centroids(1) -> Seq(pt(-9,2)),
+      centroids(2) -> Seq(pt(0,0), pt(8,2))
+    )
+    val kmeans = new KMeans()
+
+    val expected = Seq(pt(29/6.0,31/6.0), pt(-9,2), pt(4,1))
+    assert(kmeans.revise(classified, centroids) === expected)
+    assert(kmeans.revise(classified.par, centroids.par) === expected)
+  }
+
+  test("revise with missing assignment") {
+    val centroids = IndexedSeq(pt(1,4), pt(-30,7), pt(3,-2))
+    val classified= Map(
+      centroids(0) -> Seq(pt(4,5), pt(2,3), pt(9,6), pt(-9,2), pt(8,6), pt(4,3), pt(2,8)),
+      centroids(1) -> Seq(),
+      centroids(2) -> Seq(pt(0,0), pt(8,2))
+    )
+    val kmeans = new KMeans()
+
+    val expected = Seq(pt(20/7.0,33/7.0), pt(-30,7), pt(4,1))
+    assert(kmeans.revise(classified, centroids) === expected)
+    assert(kmeans.revise(classified.par, centroids.par) === expected)
+  }
+
 }

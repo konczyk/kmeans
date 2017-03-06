@@ -65,4 +65,11 @@ class KMeans(seed: Option[Long] = None) {
 
   private def closestCentroid(p: DataPoint, cs: PointSeq): DataPoint =
     cs.map(c => (c, c.distanceTo(p))).minBy(_._2)._1
+
+  def revise(classified: PointMap, centroids: PointSeq): PointSeq =
+    centroids.map{c => classified.get(c) match {
+        case Some(pts) if pts.nonEmpty => DataPoint.average(pts)
+        case _ => c
+      }}
+
 }
