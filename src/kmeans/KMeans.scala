@@ -60,4 +60,9 @@ class KMeans(seed: Option[Long] = None) {
     initStrategy(k, points, seed)
   }
 
+  def classify(points: PointSeq, centroids: PointSeq): PointMap =
+    centroids.map(_ -> Seq()).toMap ++ points.groupBy(closestCentroid(_, centroids))
+
+  private def closestCentroid(p: DataPoint, cs: PointSeq): DataPoint =
+    cs.map(c => (c, c.distanceTo(p))).minBy(_._2)._1
 }
