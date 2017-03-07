@@ -77,4 +77,13 @@ class KMeans(seed: Option[Long] = None) {
   def heterogeneity(classified: PointMap): Double =
     (for (k <- classified.keys) yield classified(k).map(_ distanceTo k).sum).sum
 
+  def kmeans(points: PointSeq, centroids: PointSeq, eta: Double): PointSeq = {
+    val revisedCentroids = revise(classify(points, centroids), centroids)
+    val converged = (centroids zip revisedCentroids).forall{
+      case (c1,c2) => c1.distanceTo(c2) <= eta
+    }
+    if (converged) revisedCentroids
+    else kmeans(points, revisedCentroids, eta)
+  }
+
 }

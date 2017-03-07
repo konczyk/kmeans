@@ -97,4 +97,19 @@ class KMeansTest extends FunSuite {
     assert(kmeans.heterogeneity(classified) === 318)
   }
 
+  test("compute final centroids") {
+    val centroids = IndexedSeq(pt(1,4), pt(-30,7), pt(3,-2))
+    val pts = parsePoints(points)
+    val kmeans = new KMeans()
+
+    val revised1 = Seq(pt(20/7.0,33/7.0), pt(-30,7), pt(4,1))
+    val revised2 = Seq(pt(16/6.0,30/6.0), pt(-30,7), pt(4,5/3.0))
+
+    assert(kmeans.kmeans(pts, centroids, 10.0) === revised1)
+    assert(kmeans.kmeans(pts.par, centroids.par, 10.0) === revised1)
+
+    assert(kmeans.kmeans(pts, centroids, 0.5) === revised2)
+    assert(kmeans.kmeans(pts.par, centroids.par, 0.5) === revised2)
+  }
+
 }
