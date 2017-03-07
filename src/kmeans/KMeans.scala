@@ -44,10 +44,10 @@ object KMeans {
       p => centroids.foldLeft(Double.MaxValue)(_ min p.distanceTo(_))
     )
     val total = distances.sum
-    def go(idx: Int, acc: Double): Int = {
+    def go(idx: Int, acc: Double): Int =
       if (prob <= acc) idx
       else go(idx+ 1, acc + distances(idx+1)/total)
-    }
+
     go(0, distances.head/total)
   }
 
