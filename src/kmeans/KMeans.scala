@@ -61,9 +61,9 @@ class KMeans(seed: Option[Long] = None) {
   }
 
   def classify(points: PointSeq, centroids: PointSeq): PointMap =
-    centroids.map(_ -> Seq()).toMap ++ points.groupBy(closestCentroid(_, centroids))
+    centroids.map(_ -> Seq()).toMap ++ points.groupBy(closestCentroid(centroids)(_))
 
-  private def closestCentroid(p: DataPoint, cs: PointSeq): DataPoint = {
+  def closestCentroid(cs: PointSeq)(p: DataPoint): DataPoint = {
     def go(k: Int, minDist: Double, closest: DataPoint): DataPoint = {
       if (k < 0) closest
       else {
