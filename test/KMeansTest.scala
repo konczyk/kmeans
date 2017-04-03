@@ -143,8 +143,8 @@ class KMeansTest extends FunSuite {
     val expected = Seq(
       pt(Map(0 -> 20 / 7.0, 1 -> 33 / 7.0), 2), pt(-30, 7),
       pt(Map(0 -> 4.0, 1 -> 1.0), 2))
-    val actual = kmeans.kmeans(points, centroids, 10.0)
-    val actualPar = kmeans.kmeans(points.par, centroids.par, 10.0)
+    val actual = kmeans.kmeans(points, centroids, 10.0, 100)
+    val actualPar = kmeans.kmeans(points.par, centroids.par, 10.0, 100)
 
     assert(actual.size === expected.size)
     assert(actualPar.size === expected.size)
@@ -164,8 +164,29 @@ class KMeansTest extends FunSuite {
     val expected = Seq(
       pt(Map(0 -> 16/6.0, 1 -> 30/6.0), 2), pt(-30,7),
       pt(Map(0 -> 4.0, 1 -> 5/3.0),2 ))
-    val actual = kmeans.kmeans(points, centroids, 0.5)
-    val actualPar = kmeans.kmeans(points.par, centroids.par, 0.5)
+    val actual = kmeans.kmeans(points, centroids, 0.5, 100)
+    val actualPar = kmeans.kmeans(points.par, centroids.par, 0.5, 100)
+
+    assert(actual.size === expected.size)
+    assert(actualPar.size === expected.size)
+    for (i <- 0 until actual.length)
+      assert(DataPoint.distance(actual(i), expected(i)) === 0)
+    for (i <- 0 until actualPar.length)
+      assert(DataPoint.distance(actualPar(i), expected(i)) === 0)
+  }
+
+  test("compute final centroids with iter=1 converges in one iteration") {
+    val centroids = IndexedSeq(pt(1, 4), pt(-30, 7), pt(3, -2))
+    val points: PointSeq = Seq(
+      pt(0, 0), pt(4, 5), pt(2, 3), pt(9, 6), pt(8, 2),
+      pt(-9, 2), pt(8, 6), pt(4, 3), pt(2, 8))
+    val kmeans = new KMeans()
+
+    val expected = Seq(
+      pt(Map(0 -> 20 / 7.0, 1 -> 33 / 7.0), 2), pt(-30, 7),
+      pt(Map(0 -> 4.0, 1 -> 1.0), 2))
+    val actual = kmeans.kmeans(points, centroids, 1e-6, 1)
+    val actualPar = kmeans.kmeans(points.par, centroids.par, 1e-6, 1)
 
     assert(actual.size === expected.size)
     assert(actualPar.size === expected.size)

@@ -32,13 +32,14 @@ object Client extends App {
   val isImage = URLConnection.guessContentTypeFromStream(is).contains("image")
   val strategy = if (conf.sampling() == "random") randomCentroids else kppCentroids
   val eta = 0.001
+  val iter = 100
 
   if (isImage) clusterImage()
 
   private def computeClusters(kmeans: KMeans, points: PointSeq): PointSeq = {
     val results = for (_ <- 1 to conf.runs()) yield {
       val centroids = kmeans.init(conf.clusters(), points, strategy).par
-      val clusters = kmeans.kmeans(points, centroids, eta)
+      val clusters = kmeans.kmeans(points, centroids, eta, iter)
       val classified = kmeans.classify(points, clusters)
       (kmeans.heterogeneity(classified), clusters)
     }
