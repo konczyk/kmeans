@@ -5,21 +5,25 @@ package object kmeans {
   trait DataPoint {
     def size: Int
     def apply(i: Int): Option[Double]
+    def indices: Iterable[Int]
   }
 
   class DenseDataPoint(val data: Vector[Double]) extends DataPoint {
     override def size: Int = data.length
     override def apply(i: Int): Option[Double] = Some(data(i))
+    override def indices: Iterable[Int] = data.indices
   }
 
-  object DenseDataPoint {
-    def unapply(point: DenseDataPoint): Option[Vector[Double]] = Some(point.data)
+  class SparseDataPoint(val data: Map[Int, Double], val size: Int) extends DataPoint {
+    override def apply(i: Int): Option[Double] = data.get(i)
+    override def indices: Iterable[Int] = data.keys
   }
 
   object DataPoint {
 
-    def apply(xs: Double*): DenseDataPoint = new DenseDataPoint(xs.toVector)
-    def apply(xs: Vector[Double]): DenseDataPoint = new DenseDataPoint(xs)
+    def apply(xs: Double*) = new DenseDataPoint(xs.toVector)
+    def apply(xs: Vector[Double]) = new DenseDataPoint(xs)
+    def apply(xs: Map[Int, Double], size: Int) = new SparseDataPoint(xs, size)
 
     def distance(p: DataPoint, q: DataPoint): Double = {
       require(p.size == q.size, "DataPoints must be of equal size")
@@ -35,22 +39,19 @@ package object kmeans {
       go(p.size-1, 0)
     }
 
-    def average(points: PointSeq): DenseDataPoint = {
-      val buf = Vector.fill[Double](points.head.size)(0)
-      if (points.isEmpty) DataPoint(buf)
+    def average(points: PointSeq): DataPoint = {
+      require(points.forall(_.size == points.head.size), "DataPoints must be of equal size")
+      val buf = Map.empty[Int, Double]
+      if (points.isEmpty) DataPoint(buf, 0)
       else {
-        def combine(acc: Vector[Double], point: DataPoint): Vector[Double] =
-          point match {
-            case DenseDataPoint(data) => reduce(acc, data)
-          }
-        def reduce(p: Vector[Double], q: Vector[Double]): Vector[Double] = {
-          val buf = Array.fill[Double](p.size)(0)
-          p.indices.foreach(i => buf(i) = p(i) + q(i))
-          buf.toVector
-        }
+        def combine(acc: Map[Int,Double], point: DataPoint): Map[Int, Double] =
+          acc ++ point.indices.map(i => i -> (point(i).get + acc.getOrElse(i, 0.0)))
+
+        def reduce(p: Map[Int, Double], q: Map[Int, Double]): Map[Int, Double] =
+          p ++ q.map{case (k,v) => k -> (v + p.getOrElse(k, 0.0))}
 
         val summed = points.aggregate(buf)(combine, reduce)
-        DataPoint(summed.map(_ / points.length))
+        DataPoint(summed.map{case (k,v) => k -> v / points.length}, points.head.size)
       }
     }
   }

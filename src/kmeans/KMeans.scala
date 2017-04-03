@@ -78,9 +78,9 @@ class KMeans(seed: Option[Long] = None) {
   // revise centroids based on the current cluster assignments
   def revise(classified: PointMap, centroids: PointSeq): PointSeq =
     centroids.map{c => classified.get(c) match {
-        case Some(pts) if pts.nonEmpty => average(pts)
-        case _ => c
-      }}
+      case Some(pts) if pts.nonEmpty => average(pts)
+      case _ => c
+    }}
 
   // compute the sum of all squared distances between data points and centroids
   def heterogeneity(classified: PointMap): Double =

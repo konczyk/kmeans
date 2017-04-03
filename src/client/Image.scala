@@ -42,9 +42,8 @@ object Image {
     image
   }
 
-  private def dataPointToColor(p: DataPoint): Int = p match {
-    case DenseDataPoint(data) =>
-      val colors = data.map(_ * 256).map(_.toInt)
-      (colors(0) << 16) | (colors(1) << 8) | colors(2)
+  private def dataPointToColor(p: DataPoint): Int = {
+    val colors = p.indices.map(i => p(i).get * 256).map(_.toInt).toVector
+    (colors(0) << 16) | (colors(1) << 8) | colors(2)
   }
 }
