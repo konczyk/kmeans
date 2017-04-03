@@ -30,23 +30,30 @@ object Client extends App {
 
   val is = new BufferedInputStream(new FileInputStream(conf.src()))
   val isImage = URLConnection.guessContentTypeFromStream(is).contains("image")
-
-  val img = readImage(conf.src())
-  val points = imageToDataPoints(img).par
   val strategy = if (conf.sampling() == "random") randomCentroids else kppCentroids
-
   val eta = 0.001
-  val kmeans = new KMeans()
 
-  val results = for (_ <- 1 to conf.runs()) yield {
-    val centroids = kmeans.init(conf.clusters(), points, strategy).par
-    val clusters = kmeans.kmeans(points, centroids, eta)
-    val classified = kmeans.classify(points, clusters)
-    (kmeans.heterogeneity(classified), clusters)
+  if (isImage) clusterImage()
+
+  private def computeClusters(kmeans: KMeans, points: PointSeq): PointSeq = {
+    val results = for (_ <- 1 to conf.runs()) yield {
+      val centroids = kmeans.init(conf.clusters(), points, strategy).par
+      val clusters = kmeans.kmeans(points, centroids, eta)
+      val classified = kmeans.classify(points, clusters)
+      (kmeans.heterogeneity(classified), clusters)
+    }
+    results.minBy(_._1)._2
   }
 
-  val bestClusters = results.minBy(_._1)._2
-  val newImg = dataPointsToImage(points, kmeans.closestCentroid(bestClusters), img.getWidth)
-  ImageIO.write(newImg, "png", new BufferedOutputStream(System.out))
+  private def clusterImage() = {
+    val img = readImage(conf.src())
+    val points = imageToDataPoints(img).par
+
+    val kmeans = new KMeans()
+    val bestClusters = computeClusters(kmeans, points)
+
+    val newImg = dataPointsToImage(points, kmeans.closestCentroid(bestClusters), img.getWidth)
+    ImageIO.write(newImg, "png", new BufferedOutputStream(System.out))
+  }
 
 }
