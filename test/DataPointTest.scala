@@ -10,6 +10,15 @@ class DataPointTest extends FunSuite {
 
   def pt(xs: Double*) = DataPoint(xs.toVector)
 
+  test("distance between dense points of different size should throw exception") {
+    val p1 = pt(1.0, 2)
+    val p2 = pt(0.0, 2, -9, 2)
+    val thrown = intercept[IllegalArgumentException] {
+      distance(p1, p2)
+    }
+    assert(thrown.getMessage contains "DataPoints must be of equal size")
+  }
+
   test("distance between dense points") {
     val p1 = pt(1.0, 2, 3, 4)
     val p2 = pt(0.0, 2, -9, 2)

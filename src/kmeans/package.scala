@@ -4,10 +4,12 @@ package object kmeans {
 
   trait DataPoint {
     def size: Int
+    def apply(i: Int): Option[Double]
   }
 
   class DenseDataPoint(val data: Vector[Double]) extends DataPoint {
     override def size: Int = data.length
+    override def apply(i: Int): Option[Double] = Some(data(i))
   }
 
   object DenseDataPoint {
@@ -21,15 +23,16 @@ package object kmeans {
 
     def distance(p: DataPoint, q: DataPoint): Double = {
       require(p.size == q.size, "DataPoints must be of equal size")
-      (p, q) match {
-        case (DenseDataPoint(pd), DenseDataPoint(qd)) =>
-          def go(i: Int, acc: Double): Double = {
-            if (i < 0) acc
-            else go(i - 1, acc + math.pow(pd(i) - qd(i), 2))
-          }
-          go(p.size-1, 0)
-        case _ => 0
+      def go(i: Int, acc: Double): Double = {
+        if (i < 0) acc
+        else (p(i), q(i)) match {
+          case (None, None) =>
+            go(i-1, acc)
+          case (v, w) =>
+            go(i-1, acc + math.pow(v.getOrElse(0.0) - w.getOrElse(0.0), 2))
+        }
       }
+      go(p.size-1, 0)
     }
 
     def average(points: PointSeq): DenseDataPoint = {
