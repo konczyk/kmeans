@@ -43,7 +43,7 @@ object Image {
   }
 
   private def dataPointToColor(p: DataPoint): Int = {
-    val colors = p.indices.map(i => p(i).get * 256).map(_.toInt).toVector
+    val colors = p.keys.map(i => p(i).get * 256).map(_.toInt).toVector
     (colors(0) << 16) | (colors(1) << 8) | colors(2)
   }
 }
