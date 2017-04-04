@@ -4,7 +4,6 @@ import java.io._
 import java.net.URLConnection
 import javax.imageio.ImageIO
 
-import client.Image._
 import kmeans.KMeans._
 import kmeans._
 import org.rogach.scallop._
@@ -29,12 +28,13 @@ object Client extends App {
   val conf = new Conf(args)
 
   val is = new BufferedInputStream(new FileInputStream(conf.src()))
-  val isImage = URLConnection.guessContentTypeFromStream(is).contains("image")
+  val contentType = Option(URLConnection.guessContentTypeFromStream(is))
+  val isImage = contentType.getOrElse("").contains("image")
   val strategy = if (conf.sampling() == "random") randomCentroids else kppCentroids
-  val eta = 0.001
+  val eta = 1e-3
   val iter = 100
 
-  if (isImage) clusterImage()
+  if (isImage) clusterImage() else clusterText()
 
   private def computeClusters(kmeans: KMeans, points: PointSeq): PointSeq = {
     val results = for (_ <- 1 to conf.runs()) yield {
@@ -47,6 +47,8 @@ object Client extends App {
   }
 
   private def clusterImage() = {
+    import client.Image._
+
     val img = readImage(conf.src())
     val points = imageToDataPoints(img).par
 
@@ -55,6 +57,28 @@ object Client extends App {
 
     val newImg = dataPointsToImage(points, kmeans.closestCentroid(bestClusters), img.getWidth)
     ImageIO.write(newImg, "png", new BufferedOutputStream(System.out))
+  }
+
+  private def clusterText() = {
+    import client.Text._
+
+    val lines = readText(conf.src())
+    val (points, wordMap) = textToDataPoints(lines, 0.005, 0.85)
+
+    val kmeans = new KMeans()
+    val parPoints = points.par
+    val bestClusters = computeClusters(kmeans, parPoints)
+    val classified = kmeans.classify(parPoints, bestClusters)
+
+    for (i <- 0 until bestClusters.length) bestClusters(i) match {
+      case (cluster: SparseDataPoint) =>
+        val words = cluster.data.toSeq.sortBy(-_._2).take(10).map(t => wordMap(t._1))
+        println(s"""
+          |Cluster $i
+          |Articles #:    ${classified(cluster).length}
+          |Top 10 words:  ${words.mkString(", ")}""".stripMargin)
+    }
+
   }
 
 }
