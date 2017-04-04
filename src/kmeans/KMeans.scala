@@ -56,7 +56,8 @@ object KMeans {
 class KMeans(seed: Option[Long] = None) {
 
   def init(k: Int, points: PointSeq, initStrategy: CentroidStrategy): PointSeq = {
-    require(k > 0, "Number of clusters k has to be larger than 0")
+    require(k > 0 && k <= points.length,
+      "Number of clusters k has to be between 1 and the number of data points")
     initStrategy(k, points, seed)
   }
 

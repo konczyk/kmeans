@@ -69,9 +69,16 @@ class KMeansTest extends FunSuite {
     assert(kmeans.init(3, points.par, kppCentroids) === expected)
   }
 
-  test("init with invalid number of clusters should throw exception") {
+  test("init with too small number of clusters should throw exception") {
     val thrown = intercept[IllegalArgumentException] {
       new KMeans().init(0, Seq(), randomCentroids)
+    }
+    assert(thrown.getMessage contains "Number of clusters k")
+  }
+
+  test("init with too large number of clusters should throw exception") {
+    val thrown = intercept[IllegalArgumentException] {
+      new KMeans().init(1, Seq(), randomCentroids)
     }
     assert(thrown.getMessage contains "Number of clusters k")
   }
