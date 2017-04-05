@@ -85,7 +85,7 @@ class KMeans(seed: Option[Long] = None) {
 
   // compute the sum of all squared distances between data points and centroids
   def heterogeneity(classified: PointMap): Double =
-    classified.map{case(k,xs) => xs.foldLeft(0.0)((acc,p) => acc + distance(p,k))}.sum
+    classified.map{case(k,xs) => xs.aggregate(0.0)(_ + distance(_,k), _ + _)}.sum
 
   final def kmeans(points: PointSeq, centroids: PointSeq, eta: Double, iter: Int): PointSeq = {
     val revisedCentroids = revise(classify(points, centroids), centroids)
